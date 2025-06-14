@@ -56,11 +56,11 @@ def add_apartment(password, user, area, number_of_rooms, price, address):
                 INSERT INTO apartments (area, number_of_rooms, price, address)
                 VALUES (%s, %s, %s, %s)
                 """
-                apartments = [(area, number_of_rooms, price, address)]
+                apartments = (area, number_of_rooms, price, address)
                 with connection.cursor() as cursor:
                     cursor.execute(insert_apartments_query, apartments)
                     connection.commit()
-                return True
+                return True, None
             else:
                 return False, "Vse polya dolzhni byt zapolneny"
     except Error as e:
