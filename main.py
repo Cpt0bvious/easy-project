@@ -18,15 +18,15 @@ class App:
         self.l = None  # Данные пользователей
 
         # Настройка окна
-        self.root.title("ИС студента Шабанов,МИУ23-01, Real Estate")
-        x, y = (root.winfo_screenwidth() // 2) - (750 // 2), (root.winfo_screenheight() // 2) - (500 // 2)
-        self.root.geometry(f"{750}x{500}+{x}+{y}")
+        self.root.title("Оценка стоимости квартиры")
+        x, y = (root.winfo_screenwidth() // 2) - (800 // 2), (root.winfo_screenheight() // 2) - (600 // 2)
+        self.root.geometry(f"{800}x{600}+{x}+{y}")
         self.root.configure(bg="#71C9CE")
 
         # Стили
         style = ttk.Style()
-        style.configure("TLabel", font="helvetica 13", padding=5, background="#71C9CE", foreground="#E3FDFD")
-        style.configure("TButton", font="helvetica 10", padding=5, background="#3DC2C7", foreground="#222831")
+        style.configure("TLabel", font="helvetica 13", padding=5, background="#71C9CE", foreground="#000000")
+        style.configure("TButton", font="helvetica 10", padding=5)
         style.configure("TEntry", font="helvetica 12", padding=5)
 
         # Инициализация экрана логина
@@ -69,32 +69,6 @@ class App:
         ttk.Button(self.frame, text="Подтвердить", command=self.button3_click).grid(row=3, column=1, pady=10)
         ttk.Button(self.frame, text="Назад", command=self.setup_login_screen).grid(row=4, column=1, pady=10)
 
-    def evaluate_apartment(self, apartment):
-        """Calculate an evaluation score for an apartment based on area, rooms, and price."""
-        if not self.s:
-            return 0
-        areas = [float(a[1]) for a in self.s]
-        rooms = [int(a[2]) for a in self.s]
-        prices = [int(a[3]) for a in self.s]
-        
-        max_area, min_area = max(areas), min(areas)
-        max_rooms, min_rooms = max(rooms), min(rooms)
-        max_price, min_price = max(prices), min(prices)
-        
-        # Avoid division by zero
-        area_range = max_area - min_area if max_area != min_area else 1
-        rooms_range = max_rooms - min_rooms if max_rooms != min_rooms else 1
-        price_range = max_price - min_price if max_price != min_price else 1
-        
-        # Normalize values (0 to 1)
-        norm_area = (float(apartment[1]) - min_area) / area_range
-        norm_rooms = (int(apartment[2]) - min_rooms) / rooms_range
-        norm_price = 1 - ((int(apartment[3]) - min_price) / price_range)  # Lower price is better
-        
-        # Weighted score (area: 40%, rooms: 30%, price: 30%)
-        score = (0.4 * norm_area + 0.3 * norm_rooms + 0.3 * norm_price) * 100
-        return round(score, 2)
-
     def setup_main_screen(self):
         self.clear_frame(self.frame)
         self.frame.pack_forget()
@@ -103,45 +77,45 @@ class App:
         self.frame.pack(expand=True, fill="both")
 
         # Таблица
-        columns = ("Номер", "Площадь", "Кол-во комнат", "Цена за месяц", "Адрес", "Оценка")
+        columns = ("ID", "Площадь", "Кол-во комнат", "Адрес", "Этаж", "Состояние", "Расстояние до центра")
         self.tree = ttk.Treeview(self.frame, columns=columns, show="headings")
         scrollbar = ttk.Scrollbar(self.frame, orient="vertical", command=self.tree.yview)
         self.tree.configure(yscrollcommand=scrollbar.set)
 
-        # Используем grid для точного размещения
         self.tree.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
         scrollbar.grid(row=0, column=1, sticky="ns", pady=5)
 
-        self.tree.heading("Номер", text="ID", anchor="w", command=lambda: self.sort(0, False, int))
+        self.tree.heading("ID", text="ID", anchor="w", command=lambda: self.sort(0, False, int))
         self.tree.heading("Площадь", text="Площадь", anchor="w", command=lambda: self.sort(1, False, float))
         self.tree.heading("Кол-во комнат", text="Кол-во комнат", anchor="w", command=lambda: self.sort(2, False, int))
-        self.tree.heading("Цена за месяц", text="Цена за месяц", anchor="w", command=lambda: self.sort(3, False, int))
-        self.tree.heading("Адрес", text="Адрес", anchor="w", command=lambda: self.sort(4, False, str))
-        self.tree.heading("Оценка", text="Оценка", anchor="w", command=lambda: self.sort(5, False, float))
-        self.tree.column("#1", width=50)
-        self.tree.column("#2", width=80)
-        self.tree.column("#3", width=100)
-        self.tree.column("#4", width=120)
-        self.tree.column("#5", width=150)
-        self.tree.column("#6", width=80)
+        self.tree.heading("Адрес", text="Адрес", anchor="w", command=lambda: self.sort(3, False, str))
+        self.tree.heading("Этаж", text="Этаж", anchor="w", command=lambda: self.sort(4, False, int))
+        self.tree.heading("Состояние", text="Состояние", anchor="w", command=lambda: self.sort(5, False, str))
+        self.tree.heading("Расстояние до центра", text="Расстояние до центра", anchor="w", command=lambda: self.sort(6, False, float))
+        self.tree.column("ID", width=50)
+        self.tree.column("Площадь", width=60)
+        self.tree.column("Кол-во комнат", width=100)
+        self.tree.column("Адрес", width=150)
+        self.tree.column("Этаж", width=60)
+        self.tree.column("Состояние", width=100)
+        self.tree.column("Расстояние до центра", width=150)
 
         # Панель кнопок
         self.button_frame = tk.Frame(self.frame, bg="#71C9CE")
         self.button_frame.grid(row=1, column=0, columnspan=2, sticky="ew", pady=5)
 
-        ttk.Button(self.button_frame, text="Поиск", command=self.search_apartments).pack(side="left", padx=5)
-        ttk.Button(self.button_frame, text="Сбросить поиск", command=self.refresh_table).pack(side="left", padx=5)
-        ttk.Button(self.button_frame, text="Экспорт в CSV", command=self.export_to_csv).pack(side="left", padx=5)
+        ttk.Button(self.button_frame, text="Поиск", command=self.search_apartments).grid(row=0, column=0, padx=5)
+        ttk.Button(self.button_frame, text="Сбросить поиск", command=self.refresh_table).grid(row=0, column=1, padx=5)
+        ttk.Button(self.button_frame, text="Экспорт в CSV", command=self.export_to_csv).grid(row=0, column=2, padx=5)
+        ttk.Button(self.button_frame, text="Оценить стоимость", command=self.evaluate_apartment).grid(row=0, column=3, padx=5)
 
         if self.user_role == 'admin':
-            ttk.Button(self.button_frame, text="Добавить квартиру", command=self.create_add_window).pack(side="left", padx=5)
-            ttk.Button(self.button_frame, text="Удалить квартиру", command=self.delete_apartment).pack(side="left", padx=5)
+            ttk.Button(self.button_frame, text="Добавить квартиру", command=self.create_add_window).grid(row=0, column=4, padx=5)
+            ttk.Button(self.button_frame, text="Удалить квартиру", command=self.delete_apartment).grid(row=0, column=5, padx=5)
             self.tree.bind("<Double-1>", self.edit_apartment)
             self.tree.bind("<Delete>", lambda event: self.delete_apartment())
 
-        # Настройка веса строк и столбцов для grid
         self.frame.grid_rowconfigure(0, weight=1)
-        self.frame.grid_rowconfigure(1, weight=0)
         self.frame.grid_columnconfigure(0, weight=1)
         self.frame.grid_columnconfigure(1, weight=0)
 
@@ -161,96 +135,240 @@ class App:
             messagebox.showerror("Ошибка", f"Ошибка подключения: {self.l}")
             return
         for apartment in self.s:
-            evaluation = self.evaluate_apartment(apartment)
-            self.tree.insert("", "end", values=(*apartment, evaluation))
+            self.tree.insert("", "end", values=apartment)
 
     def create_add_window(self):
         self.window = tk.Toplevel(self.root)
-        x, y = (self.window.winfo_screenwidth() // 2) - (500 // 2), (self.window.winfo_screenheight() // 2) - (300 // 2)
-        self.window.geometry(f"{500}x{300}+{x}+{y}")
+        x, y = (self.window.winfo_screenwidth() // 2) - (500 // 2), (self.window.winfo_screenheight() // 2) - (400 // 2)
+        self.window.geometry(f"{500}x{400}+{x}+{y}")
         self.window.title("Добавить квартиру")
         self.window.configure(bg="#71C9CE")
 
         window_frame = tk.Frame(self.window, bg="#71C9CE")
         window_frame.pack(expand=True, fill="both")
 
-        ttk.Label(window_frame, text="Площадь:").grid(row=0, column=0, padx=10, pady=5)
-        self.entr2 = ttk.Entry(window_frame)
-        self.entr2.grid(row=0, column=1, padx=10, pady=5)
+        ttk.Label(window_frame, text="Площадь (м²):").grid(row=0, column=0, padx=10, pady=5)
+        self.entr1 = ttk.Entry(window_frame)
+        self.entr1.grid(row=0, column=1, pady=5)
 
         ttk.Label(window_frame, text="Кол-во комнат:").grid(row=1, column=0, padx=10, pady=5)
+        self.entr2 = ttk.Entry(window_frame)
+        self.entr2.grid(row=1, column=1, pady=5)
+
+        ttk.Label(window_frame, text="Адрес:").grid(row=2, column=0, padx=10, pady=5)
         self.entr3 = ttk.Entry(window_frame)
-        self.entr3.grid(row=1, column=1, padx=10, pady=5)
+        self.entr3.grid(row=2, column=1, pady=5)
 
-        ttk.Label(window_frame, text="Цена за месяц:").grid(row=2, column=0, padx=10, pady=5)
+        ttk.Label(window_frame, text="Этаж:").grid(row=3, column=0, padx=10, pady=5)
         self.entr4 = ttk.Entry(window_frame)
-        self.entr4.grid(row=2, column=1, padx=10, pady=5)
+        self.entr4.grid(row=3, column=1, pady=5)
 
-        ttk.Label(window_frame, text="Адрес:").grid(row=3, column=0, padx=10, pady=5)
-        self.entr5 = ttk.Entry(window_frame)
-        self.entr5.grid(row=3, column=1, padx=10, pady=5)
+        ttk.Label(window_frame, text="Состояние:").grid(row=4, column=0, padx=10, pady=5)
+        self.entr5 = ttk.Combobox(window_frame, values=["poor", "average", "good"])
+        self.entr5.grid(row=4, column=1, pady=5)
 
-        ttk.Button(window_frame, text="Добавить", command=self.button4_click).grid(row=4, column=0, columnspan=2, pady=10)
+        ttk.Label(window_frame, text="Расстояние до центра (км):").grid(row=5, column=0, padx=10, pady=5)
+        self.entr6 = ttk.Entry(window_frame)
+        self.entr6.grid(row=5, column=1, pady=5)
+
+        ttk.Button(window_frame, text="Добавить", command=self.button4_click).grid(row=6, column=0, columnspan=2, pady=10)
 
     def search_apartments(self):
         self.window = tk.Toplevel(self.root)
-        x, y = (self.window.winfo_screenwidth() // 2) - (500 // 2), (self.window.winfo_screenheight() // 2) - (300 // 2)
-        self.window.geometry(f"{500}x{300}+{x}+{y}")
+        x, y = (self.window.winfo_screenwidth() // 2) - (500 // 2), (self.window.winfo_screenheight() // 2) - (400 // 2)
+        self.window.geometry(f"{500}x{400}+{x}+{y}")
         self.window.title("Поиск квартир")
         self.window.configure(bg="#71C9CE")
 
         window_frame = tk.Frame(self.window, bg="#71C9CE")
         window_frame.pack(expand=True, fill="both")
 
-        ttk.Label(window_frame, text="Площадь (мин):").grid(row=0, column=0, padx=10, pady=5)
+        ttk.Label(window_frame, text="Площадь (мин, м²):").grid(row=0, column=0, padx=10, pady=5)
         self.entr_area_min = ttk.Entry(window_frame)
-        self.entr_area_min.grid(row=0, column=1, padx=10, pady=5)
+        self.entr_area_min.grid(row=0, column=1, pady=5)
 
         ttk.Label(window_frame, text="Кол-во комнат:").grid(row=1, column=0, padx=10, pady=5)
         self.entr_rooms = ttk.Entry(window_frame)
-        self.entr_rooms.grid(row=1, column=1, padx=10, pady=5)
+        self.entr_rooms.grid(row=1, column=1, pady=5)
 
-        ttk.Label(window_frame, text="Цена (мин):").grid(row=2, column=0, padx=10, pady=5)
-        self.entr_price_min = ttk.Entry(window_frame)
-        self.entr_price_min.grid(row=2, column=1, padx=10, pady=5)
-
-        ttk.Label(window_frame, text="Цена (макс):").grid(row=3, column=0, padx=10, pady=5)
-        self.entr_price_max = ttk.Entry(window_frame)
-        self.entr_price_max.grid(row=3, column=1, padx=10, pady=5)
-
-        ttk.Label(window_frame, text="Адрес (часть):").grid(row=4, column=0, padx=10, pady=5)
+        ttk.Label(window_frame, text="Адрес (часть):").grid(row=2, column=0, padx=10, pady=5)
         self.entr_address = ttk.Entry(window_frame)
-        self.entr_address.grid(row=4, column=1, padx=10, pady=5)
+        self.entr_address.grid(row=2, column=1, pady=5)
 
-        ttk.Button(window_frame, text="Поиск", command=self.search).grid(row=5, column=0, columnspan=2, pady=10)
+        ttk.Label(window_frame, text="Этаж (мин):").grid(row=3, column=0, padx=10, pady=5)
+        self.entr_floor_min = ttk.Entry(window_frame)
+        self.entr_floor_min.grid(row=3, column=1, pady=5)
+
+        ttk.Label(window_frame, text="Состояние:").grid(row=4, column=0, padx=10, pady=5)
+        self.entr_sost = ttk.Combobox(window_frame, values=["", "poor", "average", "good"])
+        self.entr_sost.grid(row=4, column=1, pady=5)
+
+        ttk.Label(window_frame, text="Расстояние до центра (макс, км):").grid(row=5, column=0, padx=10, pady=5)
+        self.entr_distance_max = ttk.Entry(window_frame)
+        self.entr_distance_max.grid(row=5, column=1, pady=5)
+
+        ttk.Button(window_frame, text="Поиск", command=self.search).grid(row=6, column=0, columnspan=2, pady=10)
 
     def search(self):
         try:
-            area_min = self.entr_area_min.get()
-            rooms = self.entr_rooms.get()
-            price_min = self.entr_price_min.get()
-            price_max = self.entr_price_max.get()
+            area_min = self.entr_area_min.get().strip()
+            rooms = self.entr_rooms.get().strip()
             address_part = self.entr_address.get().strip().lower()
+            floor_min = self.entr_floor_min.get().strip()
+            sost = self.entr_sost.get().strip()
+            distance_max = self.entr_distance_max.get().strip()
 
             filtered_apartments = []
             for apartment in self.s:
-                if area_min and (not area_min.strip() or float(apartment[1]) < float(area_min)):
+                if area_min and float(apartment[1]) < float(area_min):
                     continue
-                if rooms and (not rooms.strip() or int(apartment[2]) != int(rooms)):
+                if rooms and int(apartment[2]) != int(rooms):
                     continue
-                if price_min and (not price_min.strip() or int(apartment[3]) < int(price_min)):
+                if address_part and address_part not in apartment[3].lower():
                     continue
-                if price_max and (not price_max.strip() or int(apartment[3]) > int(price_max)):
+                if floor_min and int(apartment[4]) < int(floor_min):
                     continue
-                if address_part and address_part not in apartment[4].lower():
+                if sost and apartment[5] != sost:
+                    continue
+                if distance_max and float(apartment[6]) > float(distance_max):
                     continue
                 filtered_apartments.append(apartment)
 
             self.tree.delete(*self.tree.get_children())
             for apartment in filtered_apartments:
-                evaluation = self.evaluate_apartment(apartment)
-                self.tree.insert("", "end", values=(*apartment, evaluation))
+                self.tree.insert("", "end", values=apartment)
             self.window.destroy()
+        except ValueError:
+            messagebox.showwarning("Ошибка", "Проверьте формат данных!")
+
+    def evaluate_apartment(self):
+        selected_item = self.tree.selection()
+        if not selected_item:
+            messagebox.showwarning("Ошибка", "Выберите квартиру для оценки")
+            return
+
+        self.eval_window = tk.Toplevel(self.root)
+        x, y = (self.eval_window.winfo_screenwidth() // 2) - (600 // 2), (self.eval_window.winfo_screenheight() // 2) - (600 // 2)
+        self.eval_window.geometry(f"{600}x{600}+{x}+{y}")
+        self.eval_window.title("Оценка стоимости квартиры")
+        self.eval_window.configure(bg="#71C9CE")
+
+        window_frame = tk.Frame(self.eval_window, bg="#71C9CE")
+        window_frame.pack(expand=True, fill="both")
+
+        # Сравнительный подход
+        ttk.Label(window_frame, text="Сравнительный подход: Аналоги").grid(row=0, column=0, columnspan=2, pady=5)
+        ttk.Label(window_frame, text="Стоимость (аналог 1, руб):").grid(row=1, column=0, padx=5)
+        self.entr_comp_price1 = ttk.Entry(window_frame)
+        self.entr_comp_price1.grid(row=1, column=1, pady=2)
+        ttk.Label(window_frame, text="Площадь (аналог 1, м²):").grid(row=2, column=0, padx=5)
+        self.entr_comp_area1 = ttk.Entry(window_frame)
+        self.entr_comp_area1.grid(row=2, column=1, pady=2)
+        ttk.Label(window_frame, text="Состояние (аналог 1):").grid(row=3, column=0, padx=5)
+        self.entr_comp_sost1 = ttk.Combobox(window_frame, values=["poor", "average", "good"])
+        self.entr_comp_sost1.grid(row=3, column=1, pady=2)
+        ttk.Label(window_frame, text="Этаж (аналог 1):").grid(row=4, column=0, padx=5)
+        self.entr_comp_floor1 = ttk.Entry(window_frame)
+        self.entr_comp_floor1.grid(row=4, column=1, pady=2)
+        ttk.Label(window_frame, text="Стоимость (аналог 2, руб):").grid(row=5, column=0, padx=5)
+        self.entr_comp_price2 = ttk.Entry(window_frame)
+        self.entr_comp_price2.grid(row=5, column=1, pady=2)
+        ttk.Label(window_frame, text="Площадь (аналог 2, м²):").grid(row=6, column=0, padx=5)
+        self.entr_comp_area2 = ttk.Entry(window_frame)
+        self.entr_comp_area2.grid(row=6, column=1, pady=2)
+        ttk.Label(window_frame, text="Состояние (аналог 2):").grid(row=7, column=0, padx=5)
+        self.entr_comp_sost2 = ttk.Combobox(window_frame, values=["poor", "average", "good"])
+        self.entr_comp_sost2.grid(row=7, column=1, pady=2)
+        ttk.Label(window_frame, text="Этаж (аналог 2):").grid(row=8, column=0, padx=5)
+        self.entr_comp_floor2 = ttk.Entry(window_frame)
+        self.entr_comp_floor2.grid(row=8, column=1, pady=2)
+
+        # Затратный подход
+        ttk.Label(window_frame, text="Затратный подход").grid(row=9, column=0, columnspan=2, pady=5)
+        ttk.Label(window_frame, text="Стоимость строительства (руб/м²):").grid(row=10, column=0, padx=5)
+        self.entr_cost_build = ttk.Entry(window_frame)
+        self.entr_cost_build.grid(row=10, column=1, pady=2)
+        ttk.Label(window_frame, text="Год постройки:").grid(row=11, column=0, padx=5)
+        self.entr_cost_year = ttk.Entry(window_frame)
+        self.entr_cost_year.grid(row=11, column=1, pady=2)
+        ttk.Label(window_frame, text="Стоимость земли (руб):").grid(row=12, column=0, padx=5)
+        self.entr_cost_land = ttk.Entry(window_frame)
+        self.entr_cost_land.grid(row=12, column=1, pady=2)
+
+        # Доходный подход
+        ttk.Label(window_frame, text="Доходный подход").grid(row=13, column=0, columnspan=2, pady=5)
+        ttk.Label(window_frame, text="Арендная ставка (руб/м²/мес):").grid(row=14, column=0, padx=5)
+        self.entr_inc_rent = ttk.Entry(window_frame)
+        self.entr_inc_rent.grid(row=14, column=1, pady=2)
+        ttk.Label(window_frame, text="Ставка капитализации (%):").grid(row=15, column=0, padx=5)
+        self.entr_inc_cap = ttk.Entry(window_frame)
+        self.entr_inc_cap.grid(row=15, column=1, pady=2)
+
+        ttk.Button(window_frame, text="Рассчитать", command=lambda: self.calculate_cost(selected_item)).grid(row=16, column=0, columnspan=2, pady=10)
+
+    def calculate_cost(self, selected_item):
+        apartment_data = self.tree.item(selected_item)["values"]
+        area = float(apartment_data[1])
+        floor = int(apartment_data[4])
+        sost = apartment_data[5]
+
+        try:
+            # Сравнительный подход
+            price1 = float(self.entr_comp_price1.get())
+            area1 = float(self.entr_comp_area1.get())
+            sost1 = self.entr_comp_sost1.get()
+            floor1 = int(self.entr_comp_floor1.get())
+            price2 = float(self.entr_comp_price2.get())
+            area2 = float(self.entr_comp_area2.get())
+            sost2 = self.entr_comp_sost2.get()
+            floor2 = int(self.entr_comp_floor2.get())
+            price_per_m2_1 = price1 / area1
+            price_per_m2_2 = price2 / area2
+            avg_price_per_m2 = (price_per_m2_1 + price_per_m2_2) / 2
+            correction = 1.0
+            if sost == "good" and sost1 == "average":
+                correction *= 1.05
+            elif sost == "poor" and sost1 == "average":
+                correction *= 0.95
+            if sost == "good" and sost2 == "average":
+                correction *= 1.05
+            elif sost == "poor" and sost2 == "average":
+                correction *= 0.95
+            if floor <= 2 and floor1 > 2:
+                correction *= 0.95
+            elif floor > 2 and floor1 <= 2:
+                correction *= 1.05
+            if floor <= 2 and floor2 > 2:
+                correction *= 0.95
+            elif floor > 2 and floor2 <= 2:
+                correction *= 1.05
+            comp_cost = avg_price_per_m2 * area * correction
+
+            # Затратный подход
+            build_cost_per_m2 = float(self.entr_cost_build.get())
+            year_built = int(self.entr_cost_year.get())
+            land_cost = float(self.entr_cost_land.get())
+            wear = min((2025 - year_built) * 0.01, 0.5)  # 1% износа в год, макс 50%
+            cost_cost = (build_cost_per_m2 * area * (1 - wear)) + land_cost
+
+            # Доходный подход
+            rent_per_m2 = float(self.entr_inc_rent.get())
+            cap_rate = float(self.entr_inc_cap.get()) / 100
+            annual_income = rent_per_m2 * area * 12
+            inc_cost = annual_income / cap_rate
+
+            # Комбинированная оценка
+            final_cost = (comp_cost * 0.5) + (inc_cost * 0.3) + (cost_cost * 0.2)
+
+            # Вывод результатов
+            messagebox.showinfo(
+                "Результат оценки",
+                f"Сравнительный подход: {comp_cost:,.0f} руб.\n"
+                f"Затратный подход: {cost_cost:,.0f} руб.\n"
+                f"Доходный подход: {inc_cost:,.0f} руб.\n"
+                f"Итоговая стоимость: {final_cost:,.0f} руб."
+            )
+            self.eval_window.destroy()
         except ValueError:
             messagebox.showwarning("Ошибка", "Проверьте формат данных!")
 
@@ -261,35 +379,45 @@ class App:
 
         apartment_data = self.tree.item(selected_item)["values"]
         self.window = tk.Toplevel(self.root)
-        x, y = (self.window.winfo_screenwidth() // 2) - (500 // 2), (self.window.winfo_screenheight() // 2) - (300 // 2)
-        self.window.geometry(f"{500}x{300}+{x}+{y}")
+        x, y = (self.window.winfo_screenwidth() // 2) - (500 // 2), (self.window.winfo_screenheight() // 2) - (400 // 2)
+        self.window.geometry(f"{500}x{400}+{x}+{y}")
         self.window.title("Редактировать квартиру")
         self.window.configure(bg="#71C9CE")
 
         window_frame = tk.Frame(self.window, bg="#71C9CE")
         window_frame.pack(expand=True, fill="both")
 
-        ttk.Label(window_frame, text="Площадь:").grid(row=0, column=0, padx=10, pady=5)
+        ttk.Label(window_frame, text="Площадь (м²):").grid(row=0, column=0, padx=10, pady=5)
         self.entr_edit_area1 = ttk.Entry(window_frame)
         self.entr_edit_area1.insert(0, apartment_data[1])
-        self.entr_edit_area1.grid(row=0, column=1, padx=10, pady=5)
+        self.entr_edit_area1.grid(row=0, column=1, pady=5)
 
         ttk.Label(window_frame, text="Кол-во комнат:").grid(row=1, column=0, padx=10, pady=5)
         self.entr_edit_area2 = ttk.Entry(window_frame)
         self.entr_edit_area2.insert(0, apartment_data[2])
-        self.entr_edit_area2.grid(row=1, column=1, padx=10, pady=5)
+        self.entr_edit_area2.grid(row=1, column=1, pady=5)
 
-        ttk.Label(window_frame, text="Цена за месяц:").grid(row=2, column=0, padx=10, pady=5)
+        ttk.Label(window_frame, text="Адрес:").grid(row=2, column=0, padx=10, pady=5)
         self.entr_edit_area3 = ttk.Entry(window_frame)
         self.entr_edit_area3.insert(0, apartment_data[3])
-        self.entr_edit_area3.grid(row=2, column=1, padx=10, pady=5)
+        self.entr_edit_area3.grid(row=2, column=1, pady=5)
 
-        ttk.Label(window_frame, text="Адрес:").grid(row=3, column=0, padx=10, pady=5)
+        ttk.Label(window_frame, text="Этаж:").grid(row=3, column=0, padx=10, pady=5)
         self.entr_edit_area4 = ttk.Entry(window_frame)
-        self.entr_edit_area4.insert(0, apartment_data[4])  # Adjusted index for address
-        self.entr_edit_area4.grid(row=3, column=1, padx=10, pady=5)
+        self.entr_edit_area4.insert(0, apartment_data[4])
+        self.entr_edit_area4.grid(row=3, column=1, pady=5)
 
-        ttk.Button(window_frame, text="Подтвердить", command=lambda: self.edit_button_click(apartment_data, selected_item)).grid(row=4, column=0, columnspan=2, pady=10)
+        ttk.Label(window_frame, text="Состояние:").grid(row=4, column=0, padx=10, pady=5)
+        self.entr_edit_area5 = ttk.Combobox(window_frame, values=["poor", "average", "good"])
+        self.entr_edit_area5.insert(0, apartment_data[5])
+        self.entr_edit_area5.grid(row=4, column=1, pady=5)
+
+        ttk.Label(window_frame, text="Расстояние до центра (км):").grid(row=5, column=0, padx=10, pady=5)
+        self.entr_edit_area6 = ttk.Entry(window_frame)
+        self.entr_edit_area6.insert(0, apartment_data[6])
+        self.entr_edit_area6.grid(row=5, column=1, pady=5)
+
+        ttk.Button(window_frame, text="Подтвердить", command=lambda: self.edit_button_click(apartment_data, selected_item)).grid(row=6, column=0, columnspan=2, pady=10)
 
     def button1_click(self):
         login = self.entry1.get()
@@ -335,18 +463,20 @@ class App:
 
     def button4_click(self):
         try:
-            area = float(self.entr2.get())
-            rooms = int(self.entr3.get())
-            price = int(self.entr4.get())
-            address = self.entr5.get().strip()
-            if area <= 0 or rooms <= 0 or price <= 0 or not address:
+            area = float(self.entr1.get())
+            rooms = int(self.entr2.get())
+            address = self.entr3.get().strip()
+            floor = int(self.entr4.get())
+            sost = self.entr5.get()
+            distance = float(self.entr6.get())
+            if area <= 0 or rooms <= 0 or not address or floor <= 0 or not sost or distance < 0:
                 messagebox.showwarning("Ошибка", "Некорректные данные")
                 return
 
-            success, error = bd.add_apartment(self.db_password, self.db_user, area, rooms, price, address)
+            success, error = bd.add_apartment(self.db_password, self.db_user, area, rooms, address, floor, sost, distance)
             if success:
                 messagebox.showinfo("Успех", "Квартира добавлена")
-                logging.info(f"User {self.db_user} added apartment: {area}, {rooms}, {price}, {address}")
+                logging.info(f"User {self.db_user} added apartment: {area}, {rooms}, {address}, {floor}, {sost}, {distance}")
                 self.window.destroy()
                 self.refresh_table()
             else:
@@ -358,21 +488,22 @@ class App:
         try:
             area = float(self.entr_edit_area1.get())
             rooms = int(self.entr_edit_area2.get())
-            price = int(self.entr_edit_area3.get())
-            address = self.entr_edit_area4.get().strip()
-            if area <= 0 or rooms <= 0 or price <= 0 or not address:
+            address = self.entr_edit_area3.get().strip()
+            floor = int(self.entr_edit_area4.get())
+            sost = self.entr_edit_area5.get()
+            distance = float(self.entr_edit_area6.get())
+            if area <= 0 or rooms <= 0 or not address or floor <= 0 or not sost or distance < 0:
                 messagebox.showwarning("Ошибка", "Некорректные данные")
                 return
 
-            updated_data = [apartment_data[0], area, rooms, price, address]
+            updated_data = [apartment_data[0], area, rooms, address, floor, sost, distance]
             confirmation = messagebox.askyesno("Подтверждение", "Применить изменения?")
             if not confirmation:
                 return
 
             success, error = bd.edit_apartment_bd(self.db_password, self.db_user, updated_data)
             if success:
-                evaluation = self.evaluate_apartment(updated_data)
-                self.tree.item(selected_item, values=(*updated_data, evaluation))
+                self.tree.item(selected_item, values=updated_data)
                 messagebox.showinfo("Успех", "Квартира обновлена")
                 logging.info(f"User {self.db_user} edited apartment ID {apartment_data[0]}")
                 self.window.destroy()
@@ -406,10 +537,9 @@ class App:
         try:
             with open("apartments.csv", "w", newline="", encoding="utf-8") as f:
                 writer = csv.writer(f)
-                writer.writerow(["ID", "Площадь", "Кол-во комнат", "Цена за месяц", "Адрес", "Оценка"])
+                writer.writerow(["ID", "Площадь", "Кол-во комнат", "Адрес", "Этаж", "Состояние", "Расстояние до центра"])
                 for apartment in self.s:
-                    evaluation = self.evaluate_apartment(apartment)
-                    writer.writerow([*apartment, evaluation])
+                    writer.writerow(apartment)
             messagebox.showinfo("Успех", "Данные экспортированы в apartments.csv")
             logging.info(f"User {self.db_user} exported data to CSV")
         except Exception as e:
