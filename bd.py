@@ -3,10 +3,10 @@ from mysql.connector import connect, Error
 def connection_(password, user):
     try:
         with connect(
-                host="localhost",
-                password=password,
-                user=user,
-                database="mydb",
+            host="localhost",
+            password=password,
+            user=user,
+            database="mydb",
         ) as connection:
             select_query = "SELECT * FROM apartments"
             with connection.cursor() as cursor:
@@ -26,10 +26,10 @@ def connection_(password, user):
 def add_user(password, user, first_name, password_hash):
     try:
         with connect(
-                host="localhost",
-                password=password,
-                user=user,
-                database="mydb",
+            host="localhost",
+            password=password,
+            user=user,
+            database="mydb",
         ) as connection:
             insert_users_query = """
             INSERT INTO users (first_name, password_hash, role)
@@ -43,43 +43,43 @@ def add_user(password, user, first_name, password_hash):
     except Error as e:
         return False, str(e)
 
-def add_apartment(password, user, area, number_of_rooms, price, address):
+def add_apartment(password, user, area, number_of_rooms, address, floor, sost, distance_to_center):
     try:
         with connect(
-                host="localhost",
-                password=password,
-                user=user,
-                database="mydb",
+            host="localhost",
+            password=password,
+            user=user,
+            database="mydb",
         ) as connection:
-            if all(x != '' for x in [area, number_of_rooms, price, address]):
+            if all(x != '' for x in [area, number_of_rooms, address, floor, sost, distance_to_center]):
                 insert_apartments_query = """
-                INSERT INTO apartments (area, number_of_rooms, price, address)
-                VALUES (%s, %s, %s, %s)
+                INSERT INTO apartments (area, number_of_rooms, address, floor, sost, distance_to_center)
+                VALUES (%s, %s, %s, %s, %s, %s)
                 """
-                apartments = (area, number_of_rooms, price, address)
+                apartments = (area, number_of_rooms, address, floor, sost, distance_to_center)
                 with connection.cursor() as cursor:
                     cursor.execute(insert_apartments_query, apartments)
                     connection.commit()
                 return True, None
             else:
-                return False, "Vse polya dolzhni byt zapolneny"
+                return False, "Все поля должны быть заполнены"
     except Error as e:
         return False, str(e)
 
 def edit_apartment_bd(password, user, array):
     try:
         with connect(
-                host="localhost",
-                password=password,
-                user=user,
-                database="mydb",
+            host="localhost",
+            password=password,
+            user=user,
+            database="mydb",
         ) as connection:
             sql_update_query = """
             UPDATE apartments
-            SET area = %s, number_of_rooms = %s, price = %s, address = %s
+            SET area = %s, number_of_rooms = %s, address = %s, floor = %s, sost = %s, distance_to_center = %s
             WHERE id = %s
             """
-            input_data = (array[1], array[2], array[3], array[4], array[0])
+            input_data = (array[1], array[2], array[3], array[4], array[5], array[6], array[0])
             with connection.cursor() as cursor:
                 cursor.execute(sql_update_query, input_data)
                 connection.commit()
@@ -90,10 +90,10 @@ def edit_apartment_bd(password, user, array):
 def delete_apartment_bd(password, user, id):
     try:
         with connect(
-                host="localhost",
-                password=password,
-                user=user,
-                database="mydb",
+            host="localhost",
+            password=password,
+            user=user,
+            database="mydb",
         ) as connection:
             delete_query = "DELETE FROM apartments WHERE id = %s"
             with connection.cursor() as cursor:
